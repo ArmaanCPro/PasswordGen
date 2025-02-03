@@ -12,3 +12,5 @@ build/
 **.vcxproj
 **.filters
 **.ilk
+
+*/vcpkg_installed/
