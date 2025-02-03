@@ -3,37 +3,13 @@
 
 #include <random>
 
-int main()
+// password generation through uniform int distribution across ASCII
+std::string simplePasswordGen(int passwordLen, bool intelligible)
 {
-    int passwordLen = 0;
-    std::cout << "Enter password length:\n";
-    std::cin >> passwordLen;
-    std::cout << std::endl;
-
     std::string password;
 
-    std::cout << "intelligible? y/n ";
-    bool intelligible = false;
-    {
-        char result;
-        std::cin >> result;
-        switch (result)
-        {
-            case 'y':
-                intelligible = true;
-            break;
-            case 'n':
-                intelligible = false;
-            break;
-            default:
-                std::cout << "Invalid input. Defaulting to intelligible = false" << std::endl;
-            intelligible = false;
-        }
-    }
-    std::cout << std::endl;
-
     std::random_device rd;
-    std::mt19937_64 rng = std::mt19937_64(rd());
+    auto rng = std::mt19937_64(rd());
 
 
     if (intelligible)
@@ -55,7 +31,91 @@ int main()
         }
     }
 
-    std::cout << "Password: " << password << std::endl;
+    return password;
+}
+
+std::string intermediatePasswordGen(int passwordLen, const std::string& lowerCaseChars, const std::string& upperCaseChars, const std::string& numbersChars, const std::string& symbolsChars)
+{
+    static constexpr int charCategories = 4;
+
+    std::string password;
+
+    std::random_device rd;
+    auto rng = std::mt19937_64(rd());
+
+    std::uniform_int_distribution<size_t> groupDist(0, charCategories - 1);
+
+    for (int i = 0; i < passwordLen; i++)
+    {
+        const size_t charGroup = groupDist(rng);
+        switch (charGroup)
+        {
+            case 0: {
+                std::uniform_int_distribution<size_t> dist(0, lowerCaseChars.length() - 1);
+                password.push_back(lowerCaseChars[dist(rng)]);
+                break;
+            }
+            case 1: {
+                std::uniform_int_distribution<size_t> dist(0, upperCaseChars.length() - 1);
+                password.push_back(upperCaseChars[dist(rng)]);
+                break;
+            }
+            case 2: {
+                std::uniform_int_distribution<size_t> dist(0, numbersChars.length() - 1);
+                password.push_back(numbersChars[dist(rng)]);
+                break;
+            }
+            case 3: {
+                std::uniform_int_distribution<size_t> dist(0, symbolsChars.length() - 1);
+                password.push_back(symbolsChars[dist(rng)]);
+                break;
+            }
+            default:
+                std::cerr << "invalid char group";
+        }
+    }
+
+
+    // compiler does Return Value Optimization automatically, no need for std::move
+    return password;
+}
+
+int main()
+{
+    int passwordLen = 0;
+    std::cout << "Enter password length:\n";
+    std::cin >> passwordLen;
+
+    std::cout << "intelligible? y/n \n";
+    bool intelligible = false;
+    {
+        char result;
+        std::cin >> result;
+        switch (result)
+        {
+            case 'y':
+                intelligible = true;
+            break;
+            case 'n':
+                intelligible = false;
+            break;
+            default:
+                std::cout << "Invalid input. Defaulting to intelligible = false" << std::endl;
+            intelligible = false;
+        }
+    }
+
+
+    const std::string simplePassword = simplePasswordGen(passwordLen, intelligible);
+    std::cout << "Simple Password: " << simplePassword << std::endl;
+
+    const std::string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+    const std::string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const std::string numbers = "0123456789";
+    const std::string symbols = "!@#$%^&*()_+=-[]{}|;':\",./<>?";
+
+    const std::string intermediatePassword = intermediatePasswordGen(passwordLen, lowerCase, upperCase, numbers, symbols);
+    std::cout << "\nIntermediate Password: " << intermediatePassword << std::endl;
 
     return 0;
 }
