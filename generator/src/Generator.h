@@ -18,13 +18,26 @@ namespace Generator
     struct PasswordPolicy;
     class PasswordGenerator;
 
-    static double CalculatePasswordEntropy(const std::string& password) { return log2((double)password.length());}
+    inline double CalculatePasswordEntropy(const std::string& password)
+    {
+        size_t pool = 0;
+        if (password.find_first_of(s_LowerCaseChars) != std::string::npos)
+            pool += s_LowerCaseChars.length();
+        if (password.find_first_of(s_UpperCaseChars) != std::string::npos)
+            pool += s_UpperCaseChars.length();
+        if (password.find_first_of(s_NumbersChars) != std::string::npos)
+            pool += s_NumbersChars.length();
+        if (password.find_first_of(s_SymbolsChars) != std::string::npos)
+            pool += s_SymbolsChars.length();
+
+        return (double)password.length() * std::log2(pool);
+    }
 }
 
 /// A multitude of parameters to generate passwords using
 struct Generator::PasswordPolicy
 {
-    int passwordLength;
+    uint64_t passwordLength;
     bool requireLowercase;
     bool requireUppercase;
     bool requireNumbers;
@@ -45,7 +58,7 @@ public:
      * Updates the current password policy with a new policy definition.
      * @param newPolicy The new password policy to be set, which defines rules for the password generation
      */
-    void SetPolicy(const PasswordPolicy& newPolicy) { policy = newPolicy;}
+    inline void SetPolicy(const PasswordPolicy& newPolicy) { policy = newPolicy;}
 
     /**
      * Generates a simple password based on the current policy (only password length is used).
@@ -53,42 +66,7 @@ public:
      *                     of only intelligible characters (a-z). Default is false.
      * @return A randomly generated password as a string adhering to the current policy.
      */
-    [[nodiscard]] std::string GenerateSimplePassword(bool intelligible = false) const
-    {
-        std::string password;
-
-        std::random_device rd;
-        auto rng = std::mt19937_64(rd());
-
-        if (intelligible)
-        {
-            std::uniform_int_distribution<int> dist('a', 'a' + 25); // ASCII letters range
-
-            for ( int i = 0; i < policy.passwordLength; i++)
-            {
-                char c = (char)dist(rng);
-                while (policy.excludedCharacters.find(c) != std::string::npos)
-                    c = (char)dist(rng);
-
-                password.push_back(c);
-            }
-        }
-        else
-        {
-            std::uniform_int_distribution<int> dist(33, 126); // ASCII full range
-
-            for ( int i = 0; i < policy.passwordLength; i++)
-            {
-                char c = (char)dist(rng);
-                while (policy.excludedCharacters.find(c) != std::string::npos)
-                    c = (char)dist(rng);
-
-                password.push_back(c);
-            }
-        }
-
-        return password;
-    }
+    [[nodiscard]] std::string GenerateSimplePassword(bool intelligible = false) const;
 
     /**
      * Generates an intermediate password adhering to the current password policy.
@@ -96,60 +74,7 @@ public:
      *
      * @return A randomly generated intermediate password as a string.
      */
-    [[nodiscard]] std::string GenerateIntermediatePassword() const
-    {
-        std::string password;
-
-        std::random_device rd;
-        auto rng = std::mt19937_64(rd());
-
-        std::uniform_int_distribution<short> groupDist(0, 3); // we have 4 categories, lowercase, uppercase, numbers, and symbols
-
-        for (int i = 0; i < policy.passwordLength; i++)
-        {
-            short charGroup = groupDist(rng);
-
-            // TODO: bad code. please fix in future
-            while (charGroup == 0 && !policy.requireLowercase)
-                charGroup = groupDist(rng);
-            while (charGroup == 1 && !policy.requireUppercase)
-                charGroup = groupDist(rng);
-            while (charGroup == 2 && !policy.requireNumbers)
-                charGroup = groupDist(rng);
-            while (charGroup == 3 && !policy.requireSymbols)
-                charGroup = groupDist(rng);
-
-
-            switch (charGroup)
-            {
-                case 0: {
-                    std::uniform_int_distribution<size_t> dist(0, s_LowerCaseChars.length() - 1);
-                    password.push_back(s_LowerCaseChars[dist(rng)]);
-                    break;
-                }
-                case 1: {
-                    std::uniform_int_distribution<size_t> dist(0, s_UpperCaseChars.length() - 1);
-                    password.push_back(s_UpperCaseChars[dist(rng)]);
-                    break;
-                }
-                case 2: {
-                    std::uniform_int_distribution<size_t> dist(0, s_NumbersChars.length() - 1);
-                    password.push_back(s_NumbersChars[dist(rng)]);
-                    break;
-                }
-                case 3: {
-                    std::uniform_int_distribution<size_t> dist(0, s_SymbolsChars.length() - 1);
-                    password.push_back(s_SymbolsChars[dist(rng)]);
-                    break;
-                }
-                default:
-                    std::cerr << "invalid char group";
-            }
-        }
-
-        // compiler does Return Value Optimization automatically, no need for std::move
-        return password;
-    }
+    [[nodiscard]] std::string GenerateIntermediatePassword() const;
 
     /// Generates a vector of passwords. Uses GenerateIntermediatePassword()
     [[nodiscard]] std::vector<std::string> GenerateIntermediatePasswords(int numPasswords) const
