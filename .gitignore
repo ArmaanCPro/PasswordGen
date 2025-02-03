@@ -1,0 +1,14 @@
+.idea/
+cmake-build-*/
+.vs/
+.vscode/
+build/
+**.cmake
+
+**.sln
+**.exe
+**.obj
+**.pdb
+**.vcxproj
+**.filters
+**.ilk
