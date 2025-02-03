@@ -2,6 +2,7 @@
 #include <string>
 
 #include <random>
+#include <future>
 
 // password generation through uniform int distribution across ASCII
 std::string simplePasswordGen(int passwordLen, bool intelligible)
@@ -106,16 +107,16 @@ int main()
     }
 
 
-    const std::string simplePassword = simplePasswordGen(passwordLen, intelligible);
-    std::cout << "Simple Password: " << simplePassword << std::endl;
+    std::future<std::string> simplePassword = std::async(std::launch::async, simplePasswordGen, passwordLen, intelligible);
+    std::cout << "Simple Password: " << simplePassword.get() << std::endl;
 
     const std::string lowerCase = "abcdefghijklmnopqrstuvwxyz";
     const std::string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const std::string numbers = "0123456789";
     const std::string symbols = "!@#$%^&*()_+=-[]{}|;':\",./<>?";
 
-    const std::string intermediatePassword = intermediatePasswordGen(passwordLen, lowerCase, upperCase, numbers, symbols);
-    std::cout << "\nIntermediate Password: " << intermediatePassword << std::endl;
+    std::future<std::string> intermediatePassword = std::async(std::launch::async, intermediatePasswordGen, passwordLen, lowerCase, upperCase, numbers, symbols);
+    std::cout << "\nIntermediate Password: " << intermediatePassword.get() << std::endl;
 
     return 0;
 }
