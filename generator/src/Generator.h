@@ -101,7 +101,8 @@ struct Generator::PasswordPolicy
     EncryptionStrength encryptionStrength = EncryptionStrength::Low;
 };
 
-/// Class for generating passwords. Only member is a password policy
+/// Class for generating passwords. Only member is a password policy.
+/// REMEMBER TO INITIALIZE LIBSODIUM (sodium_init()) before running some of the functions
 class Generator::PasswordGenerator
 {
 public:
