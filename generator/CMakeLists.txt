@@ -21,5 +21,6 @@ add_library( generator ${SOURCES} )
 # Include the 'src' directory.
 target_include_directories(generator PUBLIC "${PROJECT_SOURCE_DIR}/src")
 
-find_package(OpenSSL CONFIG REQUIRED)
-target_link_libraries(generator PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+# libsodium. (installed through vcpkg)
+find_package(unofficial-sodium CONFIG REQUIRED)
+target_link_libraries(generator PUBLIC unofficial-sodium::sodium)
