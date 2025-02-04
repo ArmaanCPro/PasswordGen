@@ -64,6 +64,29 @@ TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesT
     EXPECT_EQ(passwords.size(), nPasswords) << "Incorrect number of passwords generated";
 }
 
+TEST_F(PasswordGenerationTests1, AdvancedPasswordGeneratesAdheresToPolicy)
+{
+    // given:
+    const PasswordPolicy& policy = PasswordPolicy{10, true, true, true, true, "cAde"};
+
+    // when:
+    passwordGenerator.SetPolicy(policy);
+    const std::string password = passwordGenerator.GenerateAdvancedPassword();
+
+    // then:
+    EXPECT_EQ(password.length(), policy.passwordLength) << "Incorrect password length";
+
+    const bool hasLC = std::ranges::any_of(password, [](const char& c) { return Generator::s_LowerCaseChars.find(c) != std::string::npos; });
+    const bool hasUC = std::ranges::any_of(password, [](const char& c) { return Generator::s_UpperCaseChars.find(c) != std::string::npos; });
+    const bool hasNum = std::ranges::any_of(password, [](const char& c) { return Generator::s_NumbersChars.find(c) != std::string::npos; });
+    const bool hasSym = std::ranges::any_of(password, [](const char& c) { return Generator::s_SymbolsChars.find(c) != std::string::npos; });
+    EXPECT_TRUE(hasLC) << "\nPassword does not contain lowercase characters\n";
+    EXPECT_TRUE(hasUC) << "\nPassword does not contain uppercase characters\n";
+    EXPECT_TRUE(hasNum) << "\nPassword does not contain numbers\n";
+    EXPECT_TRUE(hasSym) << "\nPassword does not contain symbols\n";
+    std::cout << password << std::endl;
+}
+
 TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectlyHashes)
 {
     // given:
@@ -73,7 +96,7 @@ TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectl
     const auto [password, hash] = passwordGenerator.GenerateHashedPassword();
 
     // then:
-    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, hash)) << "Password hash verification failed";
+    EXPECT_TRUE(passwordGenerator.VerifyPasswordSafe(password, hash)) << "Password hash verification failed";
 }
 
 TEST_F(PasswordGenerationTests1, HashingPasswordsCorrectlyHash)
@@ -86,7 +109,7 @@ TEST_F(PasswordGenerationTests1, HashingPasswordsCorrectlyHash)
     const std::string encrypted = passwordGenerator.HashPassword(password);
 
     // then:
-    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, encrypted)) << "Password hash verification failed";
+    EXPECT_TRUE(passwordGenerator.VerifyPasswordSafe(password, encrypted)) << "Password hash verification failed";
 }
 
 TEST_F(PasswordGenerationTests1, HashPasswordSafeClearsMemory) {
@@ -102,7 +125,7 @@ TEST_F(PasswordGenerationTests1, HashPasswordSafeClearsMemory) {
 
     // then:
     // Verify that the hashed password matches the original input
-    EXPECT_TRUE(passwordGenerator.VerifyPassword(initialPassword, encrypted))
+    EXPECT_TRUE(passwordGenerator.VerifyPasswordSafe(initialPassword, encrypted))
         << "Password hash verification failed";
 
     for (const auto& c : password)

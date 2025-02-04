@@ -117,7 +117,7 @@ public:
      */
     inline void SetPolicy(const PasswordPolicy& newPolicy) { policy = newPolicy;}
     /// Update specifically the encryption strength of the policy
-    inline void SetPolicyEncryptionStrength(const EncryptionStrength& newEncryptionStrength) { policy.encryptionStrength = newEncryptionStrength; }
+    inline void SetPolicyEncryptionStrength(EncryptionStrength newEncryptionStrength) { policy.encryptionStrength = newEncryptionStrength; }
 
     /**
      * Generates a simple password based on the current policy (only password length is used).
@@ -143,6 +143,12 @@ public:
         return passwords;
     }
 
+    /**
+     * Generates an advanced password adhering to the current password policy. It uses libsodium to randomly generate characters.
+     * @return A randomly generated advanced password as a string.
+     */
+    [[nodiscard]] std::string GenerateAdvancedPassword() const;
+
     /** Encrypts a password using libsodium crypto_pwhash_str. The password is generated from GenerateIntermediatePassword
      * @returns The generated password and the hashed password
      */
@@ -162,7 +168,13 @@ public:
      */
     [[nodiscard]] std::string HashPasswordSafe(std::string password) const;
 
+    /// This is the 'unsafe' version of VerifyPassword. I'd recommend against using it, and the api may
+    /// discontinue support for it in the future and make it internal only.
     [[nodiscard]] bool VerifyPassword(const std::string& password, const std::string& hash) const;
+
+    /// This safe function should generally always be used over the normal VerifyPassword(). If you don't want this function
+    /// to destroy your password string, then don't use std::move(). otherwise, move it.
+    [[nodiscard]] bool VerifyPasswordSafe(std::string password, const std::string& hash) const;
 
 private:
     PasswordPolicy policy;
