@@ -67,22 +67,34 @@ std::string Generator::PasswordGenerator::GenerateIntermediatePassword() const {
         {
             case 0: {
                 std::uniform_int_distribution<size_t> dist(0, s_LowerCaseChars.length() - 1);
-                password.push_back(s_LowerCaseChars[dist(rng)]);
+                char c = s_LowerCaseChars[dist(rng)];
+                while (policy.excludedCharacters.find(c) != std::string::npos)
+                    c = s_LowerCaseChars[dist(rng)];
+                password.push_back(s_LowerCaseChars[c]);
                 break;
             }
             case 1: {
                 std::uniform_int_distribution<size_t> dist(0, s_UpperCaseChars.length() - 1);
-                password.push_back(s_UpperCaseChars[dist(rng)]);
+                char c = s_UpperCaseChars[dist(rng)];
+                while (policy.excludedCharacters.find(c) != std::string::npos)
+                    c = s_UpperCaseChars[dist(rng)];
+                password.push_back(s_UpperCaseChars[c]);
                 break;
             }
             case 2: {
                 std::uniform_int_distribution<size_t> dist(0, s_NumbersChars.length() - 1);
-                password.push_back(s_NumbersChars[dist(rng)]);
+                char c = s_NumbersChars[dist(rng)];
+                while (policy.excludedCharacters.find(c) != std::string::npos)
+                    c = s_NumbersChars[dist(rng)];
+                password.push_back(s_NumbersChars[c]);
                 break;
             }
             case 3: {
                 std::uniform_int_distribution<size_t> dist(0, s_SymbolsChars.length() - 1);
-                password.push_back(s_SymbolsChars[dist(rng)]);
+                char c = s_SymbolsChars[dist(rng)];
+                while (policy.excludedCharacters.find(c) != std::string::npos)
+                    c = s_SymbolsChars[dist(rng)];
+                password.push_back(s_SymbolsChars[c]);
                 break;
             }
             default:

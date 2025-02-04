@@ -4,6 +4,7 @@
 
 using namespace Generator;
 
+/// For now, just using simple test fixtures.
 class PasswordGenerationTests1 : public testing::Test
 {
 public:
@@ -31,7 +32,7 @@ TEST_F(PasswordGenerationTests1, SimplePasswordGeneratesTheRightAmountOfCharacte
     const std::string password = passwordGenerator.GenerateSimplePassword();
 
     // then:
-    EXPECT_EQ(password.length(), passwordLength);
+    EXPECT_EQ(password.length(), passwordLength) << "Incorrect password length";
 }
 
 
@@ -46,7 +47,7 @@ TEST_F(PasswordGenerationTests1, IntermediatePasswordGeneratesTheRightAmountOfCh
     const std::string password = passwordGenerator.GenerateIntermediatePassword();
 
     // then:
-    EXPECT_EQ(password.length(), passwordLength);
+    EXPECT_EQ(password.length(), passwordLength) << "Incorrect password length";
 }
 
 TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesTheRightAmountOfPasswords)
@@ -60,7 +61,7 @@ TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesT
     const auto passwords = passwordGenerator.GenerateIntermediatePasswords(nPasswords);
 
     // then:
-    EXPECT_EQ(passwords.size(), nPasswords);
+    EXPECT_EQ(passwords.size(), nPasswords) << "Incorrect number of passwords generated";
 }
 
 TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectlyHashes)
@@ -72,7 +73,7 @@ TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectl
     const auto [password, hash] = passwordGenerator.GenerateHashedPassword();
 
     // then:
-    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, hash));
+    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, hash)) << "Password hash verification failed";
 }
 
 TEST_F(PasswordGenerationTests1, HashingPasswordsCorrectlyHash)
@@ -85,7 +86,7 @@ TEST_F(PasswordGenerationTests1, HashingPasswordsCorrectlyHash)
     const std::string encrypted = passwordGenerator.HashPassword(password);
 
     // then:
-    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, encrypted));
+    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, encrypted)) << "Password hash verification failed";
 }
 
 TEST_F(PasswordGenerationTests1, HashPasswordSafeClearsMemory) {
