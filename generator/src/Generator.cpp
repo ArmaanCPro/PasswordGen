@@ -1,5 +1,11 @@
 #include "Generator.h"
 
+#include <sodium.h>
+#include <tuple>
+#include <tuple>
+#include <tuple>
+#include <tuple>
+
 std::string Generator::PasswordGenerator::GenerateSimplePassword(bool intelligible) const
 {
     std::string password;
@@ -89,4 +95,32 @@ std::string Generator::PasswordGenerator::GenerateIntermediatePassword() const {
 
     // compiler does Return Value Optimization automatically, no need for std::move
     return password;
+}
+
+std::tuple<std::string, std::string> Generator::PasswordGenerator::GenerateHashedPassword() const
+{
+    std::string password = GenerateIntermediatePassword();
+    char encryptedPw[crypto_pwhash_STRBYTES];
+    int hashSuccess = crypto_pwhash_str(encryptedPw, password.c_str(), password.length(),
+        sodiumOpsLimitFromEncryptionStrength(policy.encryptionStrength), sodiumMemLimitFromEncryptionStrength(policy.encryptionStrength));
+    if (hashSuccess == -1)
+        throw std::runtime_error("Failed to encrypt password");
+    std::string encryptedPassword(encryptedPw);
+    delete[] encryptedPw;
+    return encryptedPassword;
+}
+
+std::tuple<std::string, std::string> Generator::PasswordGenerator::HashPassword(const std::string& password) const
+{
+    char encryptedPw[crypto_pwhash_STRBYTES];
+    int hashSuccess = crypto_pwhash_str(encryptedPw, password.c_str(), password.length(),
+        sodiumOpsLimitFromEncryptionStrength(policy.encryptionStrength), sodiumMemLimitFromEncryptionStrength(policy.encryptionStrength));
+    if (hashSuccess == -1)
+        throw std::runtime_error("Failed to encrypt password");
+
+    crypto_pwhash_str_verify(encryptedPw, password.c_str(), password.length());
+
+    std::string encryptedPassword(encryptedPw);
+    delete[] encryptedPw;
+    return encryptedPassword;
 }
