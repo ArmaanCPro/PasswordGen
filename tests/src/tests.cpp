@@ -10,6 +10,12 @@ public:
     PasswordGenerator passwordGenerator = PasswordGenerator(PasswordPolicy{10, true, true, true, true, ""});
     void SetUp() override
     {
+        // not sure if it is good practice to init libsodium here
+        if (sodium_init() < 0)
+        {
+            std::cerr << "Failed to initialize libsodium" << std::endl;
+            throw std::runtime_error("Failed to initialize libsodium");
+        }
         passwordGenerator = PasswordGenerator(PasswordPolicy{10, true, true, true, true, ""});
     }
 };
@@ -57,14 +63,27 @@ TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesT
     EXPECT_EQ(passwords.size(), nPasswords);
 }
 
-TEST_F(PasswordGenerationTests1, EncyrptPasswordSucceeds)
+TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectlyHashes)
 {
     // given:
-    const std::string password = "<PASSWORD>";
+    passwordGenerator.SetPolicyEncryptionStrength(EncryptionStrength::Medium);
 
     // when:
-    std::string encrypted = passwordGenerator.HashPassword(password);
+    const auto [password, hash] = passwordGenerator.GenerateHashedPassword();
 
     // then:
-    EXPECT_EQ(password, )
+    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, hash));
+}
+
+TEST_F(PasswordGenerationTests1, HashingPasswordsCorrectlyHash)
+{
+    // given:
+    const std::string password = "<PASSWORD1?2.3!4@hello>";
+    passwordGenerator.SetPolicyEncryptionStrength(EncryptionStrength::Medium);
+
+    // when:
+    const std::string encrypted = passwordGenerator.HashPassword(password);
+
+    // then:
+    EXPECT_TRUE(passwordGenerator.VerifyPassword(password, encrypted));
 }

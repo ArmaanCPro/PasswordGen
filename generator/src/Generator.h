@@ -9,6 +9,8 @@
 #include <utility>
 
 #include <sodium.h>
+#include <tuple>
+#include <tuple>
 
 namespace Generator
 {
@@ -108,12 +110,6 @@ public:
         :
         policy(std::move(policy))
     {
-        // not sure if it is good practice to init libsodium here
-        if (sodium_init() < 0)
-        {
-            std::cerr << "Failed to initialize libsodium" << std::endl;
-            throw std::runtime_error("Failed to initialize libsodium");
-        }
     }
 
     /**
@@ -149,15 +145,17 @@ public:
     }
 
     /** Encrypts a password using libsodium crypto_pwhash_str. The password is generated from GenerateIntermediatePassword
-     * @returns The hash and the salt
+     * @returns The generated password and the hashed password
      */
     [[nodiscard]] std::tuple<std::string, std::string> GenerateHashedPassword() const;
 
     /**
      * Hash a password using libsodium.
-     * @returns The hash and the salt
+     * @returns The hashed password
      */
-    [[nodiscard]] std::tuple<std::string, std::string> HashPassword(const std::string& password) const;
+    [[nodiscard]] std::string HashPassword(const std::string& password) const;
+
+    [[nodiscard]] bool VerifyPassword(const std::string& password, const std::string& hash) const;
 
 private:
     PasswordPolicy policy;

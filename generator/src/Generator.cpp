@@ -99,18 +99,17 @@ std::string Generator::PasswordGenerator::GenerateIntermediatePassword() const {
 
 std::tuple<std::string, std::string> Generator::PasswordGenerator::GenerateHashedPassword() const
 {
-    std::string password = GenerateIntermediatePassword();
+    const std::string password = GenerateIntermediatePassword();
     char encryptedPw[crypto_pwhash_STRBYTES];
     int hashSuccess = crypto_pwhash_str(encryptedPw, password.c_str(), password.length(),
         sodiumOpsLimitFromEncryptionStrength(policy.encryptionStrength), sodiumMemLimitFromEncryptionStrength(policy.encryptionStrength));
     if (hashSuccess == -1)
         throw std::runtime_error("Failed to encrypt password");
     std::string encryptedPassword(encryptedPw);
-    delete[] encryptedPw;
-    return encryptedPassword;
+    return { password, encryptedPassword };
 }
 
-std::tuple<std::string, std::string> Generator::PasswordGenerator::HashPassword(const std::string& password) const
+std::string Generator::PasswordGenerator::HashPassword(const std::string& password) const
 {
     char encryptedPw[crypto_pwhash_STRBYTES];
     int hashSuccess = crypto_pwhash_str(encryptedPw, password.c_str(), password.length(),
@@ -118,9 +117,11 @@ std::tuple<std::string, std::string> Generator::PasswordGenerator::HashPassword(
     if (hashSuccess == -1)
         throw std::runtime_error("Failed to encrypt password");
 
-    crypto_pwhash_str_verify(encryptedPw, password.c_str(), password.length());
-
     std::string encryptedPassword(encryptedPw);
-    delete[] encryptedPw;
     return encryptedPassword;
+}
+
+bool Generator::PasswordGenerator::VerifyPassword(const std::string& password, const std::string& hash) const
+{
+    return crypto_pwhash_str_verify(hash.c_str(), password.c_str(), password.length()) == 0;
 }
