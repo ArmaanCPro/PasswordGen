@@ -2,9 +2,6 @@
 
 #include <sodium.h>
 #include <tuple>
-#include <tuple>
-#include <tuple>
-#include <tuple>
 
 std::string Generator::PasswordGenerator::GenerateSimplePassword(bool intelligible) const
 {
@@ -99,14 +96,15 @@ std::string Generator::PasswordGenerator::GenerateIntermediatePassword() const {
 
 std::tuple<std::string, std::string> Generator::PasswordGenerator::GenerateHashedPassword() const
 {
-    const std::string password = GenerateIntermediatePassword();
+    std::string password = GenerateIntermediatePassword();
     char encryptedPw[crypto_pwhash_STRBYTES];
     int hashSuccess = crypto_pwhash_str(encryptedPw, password.c_str(), password.length(),
         sodiumOpsLimitFromEncryptionStrength(policy.encryptionStrength), sodiumMemLimitFromEncryptionStrength(policy.encryptionStrength));
     if (hashSuccess == -1)
         throw std::runtime_error("Failed to encrypt password");
     std::string encryptedPassword(encryptedPw);
-    return { password, encryptedPassword };
+
+    return std::make_tuple(std::move(password), std::move(encryptedPassword));
 }
 
 std::string Generator::PasswordGenerator::HashPassword(const std::string& password) const
@@ -119,6 +117,20 @@ std::string Generator::PasswordGenerator::HashPassword(const std::string& passwo
 
     std::string encryptedPassword(encryptedPw);
     return encryptedPassword;
+}
+
+std::string Generator::PasswordGenerator::HashPasswordSafe(std::string password) const
+{
+    // Safeguard: Ensure password is non-empty
+    if (password.empty())
+    {
+        throw std::invalid_argument("Password cannot be empty");
+    }
+
+    sodium_mlock(&password[0], password.length());
+    std::string hashedPassword = HashPassword(password);
+    sodium_munlock(&password[0], password.length());
+    return hashedPassword;
 }
 
 bool Generator::PasswordGenerator::VerifyPassword(const std::string& password, const std::string& hash) const

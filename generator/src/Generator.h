@@ -10,7 +10,6 @@
 
 #include <sodium.h>
 #include <tuple>
-#include <tuple>
 
 namespace Generator
 {
@@ -154,6 +153,14 @@ public:
      * @returns The hashed password
      */
     [[nodiscard]] std::string HashPassword(const std::string& password) const;
+
+    /**
+     * Hash a password using libsodium. However, this erases the password from memory, thereby creating some degree of memory safety.
+     * Plaintext passwords should be in memory for as little time as possible.
+     * @param password If you std::move the password, recall that the data will be erased.
+     * @returns The hashed password.
+     */
+    [[nodiscard]] std::string HashPasswordSafe(std::string password) const;
 
     [[nodiscard]] bool VerifyPassword(const std::string& password, const std::string& hash) const;
 
