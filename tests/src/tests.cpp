@@ -95,10 +95,11 @@ TEST_F(PasswordGenerationTests1, AdvancedPasswordGeneratesAdheresToPolicy)
     PasswordAdheresToPolicy(password, policy);
 }
 
+// expected to fail for now
 TEST_F(PasswordGenerationTests1, GenerateAdvancedPasswordsAsyncAdheresToPolicy)
 {
     // given:
-    constexpr int nPasswords = 10;
+    constexpr int nPasswords = 100;
     const PasswordPolicy& policy = PasswordPolicy{10, true, true, true, true, "cAde", EncryptionStrength::Low};
     passwordGenerator.SetPolicy(policy);
 
