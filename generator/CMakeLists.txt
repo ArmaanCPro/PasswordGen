@@ -12,7 +12,9 @@ endif()
 
 set  (SOURCES
         "src/Generator.h"
-        "src/Generator.cpp")
+        "src/Generator.cpp"
+        "src/GenerationTasks.h" #currently using std::async instead of coroutines, so this file doesn't do anything
+)
 
 source_group("src" FILES ${SOURCES})
 

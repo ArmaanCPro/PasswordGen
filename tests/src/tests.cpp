@@ -21,6 +21,23 @@ public:
     }
 };
 
+void PasswordAdheresToPolicy(const std::string& password, const PasswordPolicy& policy)
+{
+    const bool matchesLength = password.length() == policy.passwordLength;
+    const bool containsExcludedChars = std::ranges::any_of(password, [&policy](const char& c) { return policy.excludedCharacters.find(c) != std::string::npos; });
+    const bool hasLC = std::ranges::any_of(password, [](const char& c) { return Generator::s_LowerCaseChars.find(c) != std::string::npos; });
+    const bool hasUC = std::ranges::any_of(password, [](const char& c) { return Generator::s_UpperCaseChars.find(c) != std::string::npos; });
+    const bool hasNum = std::ranges::any_of(password, [](const char& c) { return Generator::s_NumbersChars.find(c) != std::string::npos; });
+    const bool hasSym = std::ranges::any_of(password, [](const char& c) { return Generator::s_SymbolsChars.find(c) != std::string::npos; });
+
+    EXPECT_TRUE(matchesLength);
+    EXPECT_FALSE(containsExcludedChars);
+    EXPECT_EQ(hasLC, policy.requireLowercase);
+    EXPECT_EQ(hasUC, policy.requireUppercase);
+    EXPECT_EQ(hasNum, policy.requireNumbers);
+    EXPECT_EQ(hasSym, policy.requireSymbols);
+}
+
 TEST_F(PasswordGenerationTests1, SimplePasswordGeneratesTheRightAmountOfCharacters)
 {
     // given:
@@ -64,6 +81,7 @@ TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesT
     EXPECT_EQ(passwords.size(), nPasswords) << "Incorrect number of passwords generated";
 }
 
+// this test is expected to fail for now.
 TEST_F(PasswordGenerationTests1, AdvancedPasswordGeneratesAdheresToPolicy)
 {
     // given:
@@ -74,17 +92,39 @@ TEST_F(PasswordGenerationTests1, AdvancedPasswordGeneratesAdheresToPolicy)
     const std::string password = passwordGenerator.GenerateAdvancedPassword();
 
     // then:
-    EXPECT_EQ(password.length(), policy.passwordLength) << "Incorrect password length";
+    PasswordAdheresToPolicy(password, policy);
+}
 
-    const bool hasLC = std::ranges::any_of(password, [](const char& c) { return Generator::s_LowerCaseChars.find(c) != std::string::npos; });
-    const bool hasUC = std::ranges::any_of(password, [](const char& c) { return Generator::s_UpperCaseChars.find(c) != std::string::npos; });
-    const bool hasNum = std::ranges::any_of(password, [](const char& c) { return Generator::s_NumbersChars.find(c) != std::string::npos; });
-    const bool hasSym = std::ranges::any_of(password, [](const char& c) { return Generator::s_SymbolsChars.find(c) != std::string::npos; });
-    EXPECT_TRUE(hasLC && policy.requireLowercase);
-    EXPECT_TRUE(hasUC && policy.requireUppercase);
-    EXPECT_TRUE(hasNum && policy.requireNumbers);
-    EXPECT_TRUE(hasSym && policy.requireSymbols);
-    std::cout << password << std::endl;
+TEST_F(PasswordGenerationTests1, GenerateAdvancedPasswordsAsyncAdheresToPolicy)
+{
+    // given:
+    constexpr int nPasswords = 10;
+    const PasswordPolicy& policy = PasswordPolicy{10, true, true, true, true, "cAde", EncryptionStrength::Low};
+    passwordGenerator.SetPolicy(policy);
+
+    // when:
+    auto passwordsFut = passwordGenerator.GenerateAdvancedPasswordsAsync(nPasswords);
+    const auto passwords = passwordsFut.get();
+
+    // then:
+    for (const auto& password : passwords)
+    {
+        PasswordAdheresToPolicy(password, policy);
+    }
+}
+
+TEST_F(PasswordGenerationTests1, GenerateAdvancedPasswordsAsyncGeneratesTheRightAmountOfPasswords)
+{
+    // given:
+    const int nPasswords = 1000;
+    passwordGenerator.SetPolicyEncryptionStrength(EncryptionStrength::Low);
+
+    // when:
+    auto passwordsFut = passwordGenerator.GenerateAdvancedPasswordsAsync(nPasswords);
+
+    // then:
+    const auto passwords = passwordsFut.get();
+    EXPECT_EQ(passwords.size(), nPasswords) << "Incorrect number of passwords generated";
 }
 
 TEST_F(PasswordGenerationTests1, AutomaticallyGeneratedAndHashedPasswordCorrectlyHashes)
@@ -134,4 +174,21 @@ TEST_F(PasswordGenerationTests1, HashPasswordSafeClearsMemory) {
         EXPECT_EQ(c, '\0') << "Password was not cleared from memory";
     }
 
+}
+
+TEST_F(PasswordGenerationTests1, HashPasswordsSafeAsyncCorrectlyHashes)
+{
+    // given:
+    const std::vector<std::string> passwords =  { "<PASSWORD1?2.3!4@hello>", "saidjsad2813", "8213217328sdhjahdlasjlcjxz9", "asSADIJnmSD8299>.", "momolleh" };
+    passwordGenerator.SetPolicyEncryptionStrength(EncryptionStrength::Low);
+
+    // when:
+    auto encryptedFut = passwordGenerator.HashPasswordsSafeAsync(passwords);
+
+    // then:
+    const auto encrypted = encryptedFut.get();
+    for (int i = 0; i < passwords.size(); i++)
+    {
+        EXPECT_TRUE(passwordGenerator.VerifyPasswordSafe(passwords[i], encrypted[i])) << "Password hash verification failed";
+    }
 }

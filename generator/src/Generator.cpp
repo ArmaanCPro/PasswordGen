@@ -106,6 +106,12 @@ std::string Generator::PasswordGenerator::GenerateIntermediatePassword() const {
     return password;
 }
 
+std::future<std::vector<std::string>> Generator::PasswordGenerator::GenerateIntermediatePasswordsAsync(
+    int numPasswords) const
+{
+    return std::async(std::launch::async, &Generator::PasswordGenerator::GenerateIntermediatePasswords, this, numPasswords);
+}
+
 std::string Generator::PasswordGenerator::GenerateAdvancedPassword() const
 {
     std::string password;
@@ -150,6 +156,12 @@ std::string Generator::PasswordGenerator::GenerateAdvancedPassword() const
     return password;
 }
 
+std::future<std::vector<std::string>> Generator::PasswordGenerator::GenerateAdvancedPasswordsAsync(
+    int numPasswords) const
+{
+    return std::async(std::launch::async, &Generator::PasswordGenerator::GenerateAdvancedPasswords, this, numPasswords);
+}
+
 std::tuple<std::string, std::string> Generator::PasswordGenerator::GenerateHashedPassword() const
 {
     std::string password = GenerateAdvancedPassword();
@@ -187,6 +199,12 @@ std::string Generator::PasswordGenerator::HashPasswordSafe(std::string password)
     std::string hashedPassword = HashPassword(password);
     sodium_munlock(&password[0], password.length());
     return hashedPassword;
+}
+
+std::future<std::vector<std::string>> Generator::PasswordGenerator::HashPasswordsSafeAsync(
+    std::vector<std::string> passwords) const
+{
+    return std::async(std::launch::async, &Generator::PasswordGenerator::HashPasswordsSafe, this, std::move(passwords));
 }
 
 bool Generator::PasswordGenerator::VerifyPassword(const std::string& password, const std::string& hash) const

@@ -140,15 +140,33 @@ public:
     [[nodiscard]] std::vector<std::string> GenerateIntermediatePasswords(int numPasswords) const
     {
         std::vector<std::string> passwords;
+        passwords.reserve(numPasswords);
         std::generate_n(std::back_inserter(passwords), numPasswords, [this]() { return this->GenerateIntermediatePassword(); });
         return passwords;
     }
+
+    /// This is the async version of GenerateIntermediatePasswords(). Same implementation.
+    [[nodiscard]] inline std::future<std::vector<std::string>> GenerateIntermediatePasswordsAsync(
+        int numPasswords) const;
 
     /**
      * Generates an advanced password adhering to the current password policy. It uses libsodium to randomly generate characters.
      * @return A randomly generated advanced password as a string.
      */
     [[nodiscard]] std::string GenerateAdvancedPassword() const;
+
+    /// Generates a vector of passwords. Uses GenerateAdvancedPassword()
+    [[nodiscard]] std::vector<std::string> GenerateAdvancedPasswords(int numPasswords) const
+    {
+        std::vector<std::string> passwords;
+        passwords.reserve(numPasswords);
+        std::generate_n(std::back_inserter(passwords), numPasswords, [this]() { return this->GenerateAdvancedPassword(); });
+        return passwords;
+    }
+
+    /// This is the async version of GenerateAdvancedPasswords(). Same implementation.
+    [[nodiscard]] std::future<std::vector<std::string>> GenerateAdvancedPasswordsAsync(
+        int numPasswords) const;
 
     /** Encrypts a password using libsodium crypto_pwhash_str. The password is generated from GenerateIntermediatePassword
      * @returns The generated password and the hashed password
@@ -168,6 +186,20 @@ public:
      * @returns The hashed password.
      */
     [[nodiscard]] std::string HashPasswordSafe(std::string password) const;
+
+    /// Hashes many passwords using HashPasswordSafe underneath the hood. Note that the passwords vector will be erased.
+    [[nodiscard]] std::vector<std::string> HashPasswordsSafe(std::vector<std::string> passwords) const
+    {
+        std::vector<std::string> hashedPasswords;
+        hashedPasswords.reserve(passwords.size());
+        std::ranges::transform(passwords, std::back_inserter(hashedPasswords),
+                               [this](const std::string& password) { return this->HashPasswordSafe(password); });
+        return hashedPasswords;
+    }
+
+    /// This is the async version of HashPasswordsSafe(). Same implementation. passwords vector will be erased.
+    [[nodiscard]] std::future<std::vector<std::string>> HashPasswordsSafeAsync(
+        std::vector<std::string> passwords) const;
 
     /// This is the 'unsafe' version of VerifyPassword. I'd recommend against using it, and the api may
     /// discontinue support for it in the future and make it internal only.
