@@ -79,7 +79,6 @@ namespace Generator
 /// A multitude of parameters to generate passwords using
 struct Generator::PasswordPolicy
 {
-    PasswordPolicy() = default;
     explicit PasswordPolicy(uint64_t passwordLength = 10, bool requireLowercase = true, bool requireUppercase = true,
         bool requireNumbers = true, bool requireSymbols = true, std::string excludedCharacters = "",
         EncryptionStrength encryptionStrength = EncryptionStrength::Medium)
