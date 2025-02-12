@@ -20,6 +20,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 
+# Enable testing for google tests
+enable_testing()
+include(CTest)
+
 add_subdirectory(generator)
 add_subdirectory(tests)
 add_subdirectory(cli)
