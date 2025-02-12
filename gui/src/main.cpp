@@ -58,8 +58,6 @@ public:
         auto* frame = new MyFrame();
         frame->Show();
         return true;
-
-        SetAppearance(Dark);
     }
 };
 
