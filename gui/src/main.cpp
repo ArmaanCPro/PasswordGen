@@ -28,9 +28,23 @@ public:
             std::cerr << "Failed to initialize libsodium" << std::endl;
             throw std::runtime_error("Failed to initialize libsodium");
         }
-        std::filesystem::path path = std::filesystem::current_path();
-        path = std::filesystem::relative("../resources/password-icon.png", path);
-        SetIcon(wxIcon(path.string(), wxICON_DEFAULT_TYPE));
+
+        // app icon shenanigans
+        {
+            std::filesystem::path iconPath = std::filesystem::absolute("password-icon.ico");
+            wxIcon icon;
+            icon.LoadFile(iconPath.string(), wxBITMAP_TYPE_ICO);
+
+            // Check if the file exists
+            if (!std::filesystem::exists(iconPath) || !icon.IsOk()) {
+                wxMessageBox("Icon file not found: " + iconPath.string(), "Error", wxOK | wxICON_ERROR);
+                return;
+            }
+
+            // Set the window icon
+            SetIcon(icon);
+        }
+
         // Define dark mode colors.
         wxColor darkBg(30, 30, 30);           // Dark background (almost black)
         wxColor darkControlBg(50, 50, 50);    // A slightly lighter tone for input controls
