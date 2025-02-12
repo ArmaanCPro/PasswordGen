@@ -22,9 +22,9 @@ class MyFrame : public wxFrame
 public:
     MyFrame()
         :
-        wxFrame(nullptr, wxID_ANY, "Password Generator GUI", wxDefaultPosition, wxSize(800, 600)),
+        wxFrame(nullptr, wxID_ANY, "Password Generator GUI", wxDefaultPosition, wxSize(1000, 600)),
         passwordGenerator(policy),
-        db("PasswordGenDB", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
+        db("PasswordGenDB.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
     {
         if (sodium_init() < 0)
         {
