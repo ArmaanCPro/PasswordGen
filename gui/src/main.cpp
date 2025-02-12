@@ -6,7 +6,6 @@
 
 enum
 {
-    ID_HELLO = 1,
     ID_CB_LOWERCASE,
     ID_CB_UPPERCASE,
     ID_CB_NUMBERS,
@@ -109,7 +108,6 @@ public:
 
         // Add the checkbox sizer to the main sizer.
         mainSizer->Add(cbSizer, 0, wxALIGN_CENTER);
-
 
         // --- Row for generating password and copying ---
         wxBoxSizer* generateSizer = new wxBoxSizer(wxHORIZONTAL);
