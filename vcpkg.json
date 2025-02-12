@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "dependencies": [
     "libsodium",
-    "wxwidgets"
+    "wxwidgets",
+    "sqlitecpp"
   ],
   "builtin-baseline": "33e9c99208736b713cabe4490e15235f62f893d4"
 }

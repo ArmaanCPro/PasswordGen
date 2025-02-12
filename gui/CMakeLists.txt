@@ -23,6 +23,10 @@ target_link_libraries(gui PUBLIC generator)
 find_package(wxWidgets REQUIRED gl core base OPTIONAL_COMPONENTS net)
 target_link_libraries(gui PRIVATE ${wxWidgets_LIBRARIES})
 
+# sqlitecpp
+find_package(SQLiteCpp CONFIG REQUIRED)
+target_link_libraries(gui PRIVATE SQLiteCpp)
+
 
 # Define the resource directory (relative to the project root)
 set(RESOURCE_FILES

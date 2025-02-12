@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <wx/clipbrd.h>
 
+#include <SQLiteCpp/SQLiteCpp.h>
+
 enum
 {
     ID_CB_LOWERCASE,
@@ -21,13 +23,17 @@ public:
     MyFrame()
         :
         wxFrame(nullptr, wxID_ANY, "Password Generator GUI", wxDefaultPosition, wxSize(800, 600)),
-        passwordGenerator(policy)
+        passwordGenerator(policy),
+        db("PasswordGenDB", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
     {
         if (sodium_init() < 0)
         {
             std::cerr << "Failed to initialize libsodium" << std::endl;
             throw std::runtime_error("Failed to initialize libsodium");
         }
+
+        // setup database
+        db.exec("CREATE TABLE IF NOT EXISTS passwords (hash TEXT)");
 
         // app icon shenanigans
         {
@@ -166,6 +172,12 @@ public:
         hashText->SetForegroundColour(lightText);
         extraSizer->Add(hashText, 0, wxALL, 5);
 
+        // Button to save hashes to the database
+        wxButton* saveBtn = new wxButton(panel, wxID_ANY, "Save Hash to Database");
+        saveBtn->SetBackgroundColour(darkControlBg);
+        saveBtn->SetForegroundColour(lightText);
+        extraSizer->Add(saveBtn, 0, wxALL, 5);
+
 
         mainSizer->Add(extraSizer, 0, wxALIGN_CENTER);
 
@@ -288,6 +300,36 @@ public:
                 std::cerr << "Unknown exception during password hashing." << std::endl;
             }
         });
+
+        saveBtn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& event)
+        {
+            try
+            {
+                SQLite::Statement insertQuery(db, "INSERT INTO passwords (hash) VALUES (?)");
+
+                insertQuery.bind(1, (std::string)hashText->GetValue());
+                insertQuery.exec();
+                insertQuery.reset();
+
+                // for debugging
+                SQLite::Statement selectQuery(db, "SELECT * FROM passwords");
+                while (selectQuery.executeStep())
+                {
+                    std::cout << selectQuery.getColumn(0) << std::endl;
+                }
+                selectQuery.reset();
+            }
+            catch (const std::exception& ex)
+            {
+                std::cerr << "Exception during database insertion: " << ex.what() << std::endl;
+                wxLogError("Exception during database insertion: %s", ex.what());
+            }
+            catch (...)
+            {
+                std::cerr << "Unknown exception during database insertion." << std::endl;
+                wxLogError("Unknown exception during database insertion.");
+            }
+        });
     }
 
 private:
@@ -301,6 +343,8 @@ private:
     wxSlider* passwordLenSlider;
     // label to display the current slider value. editable
     wxTextCtrl* passwordLenText;
+
+    SQLite::Database db;
 
 
 private:
