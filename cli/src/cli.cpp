@@ -19,8 +19,8 @@ int main()
     while (isRunning)
     {
         pwdGen.SetPolicy(policy);
-        std::cout << "0. Exit 1. Set length\n2. Set use lowercase\n3. Set use uppercase\n4. Set use numbers"
-                     "\n5. Set use symbols\n6. Generate password\n7. Hash password\n\n\nEnter your choice: " << std::flush;
+        std::cout << "0. Exit\n1. Set length\n2. Set use lowercase\n3. Set use uppercase\n4. Set use numbers"
+                     "\n5. Set use symbols\n6. Generate password\n7. Hash password\n\nEnter your choice: " << std::flush;
 
         int choice = 0;
         std::cin >> choice;

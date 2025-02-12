@@ -78,7 +78,7 @@ public:
         // horizontal sizer holding the slider and label
         wxBoxSizer* sliderSizer = new wxBoxSizer(wxHORIZONTAL);
 
-        passwordLenText = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, 25));
+        passwordLenText = new wxTextCtrl(panel, wxID_ANY, "10", wxDefaultPosition, wxSize(100, 25));
         passwordLenText->SetForegroundColour(lightText);
         passwordLenText->SetBackgroundColour(darkControlBg);
         sliderSizer->Add(passwordLenText, 0, wxALL, 5);
@@ -97,6 +97,7 @@ public:
 
         // Create the text field.
         wxTextCtrl* excludedCharsTextCtrl = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, 25));
+        excludedCharsTextCtrl->SetFocus();
         excludedCharsTextCtrl->SetBackgroundColour(darkControlBg);
         excludedCharsTextCtrl->SetForegroundColour(lightText);
 
@@ -141,9 +142,8 @@ public:
         generateBtn->SetForegroundColour(lightText);
         generateSizer->Add(generateBtn, 0, wxALL, 5);
 
-        // Read-only text field for the generated password. passwordText is a member
-        passwordText = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(250, 25),
-            wxTE_READONLY);
+        // text field for the generated password. passwordText is a member
+        passwordText = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(250, 25));
         passwordText->SetBackgroundColour(darkControlBg);
         passwordText->SetForegroundColour(lightText);
         generateSizer->Add(passwordText, 0, wxALL, 5);
@@ -303,6 +303,13 @@ public:
 
         saveBtn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& event)
         {
+            if (hashText->GetValue().empty())
+            {
+                std::cerr << "Hash text is empty!" << std::endl;
+                wxLogError("Hash text is empty!");
+                return;
+            }
+
             try
             {
                 SQLite::Statement insertQuery(db, "INSERT INTO passwords (hash) VALUES (?)");
