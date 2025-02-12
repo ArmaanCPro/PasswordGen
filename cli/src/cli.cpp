@@ -1,10 +1,19 @@
 #include <iostream>
 #include "Generator.h"
+#include <sodium.h>
 
 int main()
 {
+    if (sodium_init() == -1)
+    {
+        std::cerr << "Failed to initialize libsodium" << std::endl;
+        return -1;
+    }
+
     Generator::PasswordPolicy policy;
     Generator::PasswordGenerator pwdGen(policy);
+
+    std::string password;
     bool isRunning = true;
 
     while (isRunning)
@@ -14,8 +23,6 @@ int main()
 
         int choice = 0;
         std::cin >> choice;
-
-        std::string password;
 
         switch (choice)
         {
