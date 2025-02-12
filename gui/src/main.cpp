@@ -116,6 +116,8 @@ public:
 
         // Generate password button
         wxButton* generateBtn = new wxButton(panel, ID_BTN_GENERATE, "Generate Password");
+        generateBtn->SetBackgroundColour(darkControlBg);
+        generateBtn->SetForegroundColour(lightText);
         generateSizer->Add(generateBtn, 0, wxALL, 5);
 
         // Read-only text field for the generated password. passwordText is a member
@@ -127,6 +129,8 @@ public:
 
         // Copy button.
         wxButton* copyBtn = new wxButton(panel, ID_BTN_COPY, "Copy");
+        copyBtn->SetBackgroundColour(darkControlBg);
+        copyBtn->SetForegroundColour(lightText);
         generateSizer->Add(copyBtn, 0, wxALL, 5);
 
         mainSizer->Add(generateSizer, 0, wxALIGN_CENTER);
