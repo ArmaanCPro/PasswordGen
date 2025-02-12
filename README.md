@@ -15,9 +15,12 @@ The project uses CMake to build. It uses both CMake's `FetchContent` as well as 
 CMake looks for vcpkg based on a `VCPKG_ROOT` environment variable. You can change that in the outermost `CMakeLists.txt` file if needed. Otherwise, it uses cmake's `FetchContent` to download vcpkg.
 The only reason I'm using FetchContent is for Google Test. It was a pain to use vcpkg with it, so I just used `FetchContent`. 
 But, libsodium is installed using vcpkg. Aside from all that, you should be able to just build the project normally using CMake without any arguments.
+If you're using `mingw`, try setting your vcpkg triplet to `-x64-mingw-static` or `dynamic`, and in cmake options its:
+`-DVCPKG_TARGET_TRIPLET=x64-mingw-static`. It's needed for `vcpkg` w/ `wxWidgets`.
 
 ## Dependencies
 - `CMake`
 - `vcpkg`
 - `libsodium`
 - `Google Test`
+- `wxWidgets`

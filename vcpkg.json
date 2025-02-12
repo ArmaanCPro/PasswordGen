@@ -2,7 +2,8 @@
   "name": "passwordgen",
   "version": "1.0.0",
   "dependencies": [
-    "libsodium"
+    "libsodium",
+    "wxwidgets"
   ],
-  "builtin-baseline": "0ca64b4e1c70fa6d9f53b369b8f3f0843797c20c"
+  "builtin-baseline": "33e9c99208736b713cabe4490e15235f62f893d4"
 }

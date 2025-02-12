@@ -3,6 +3,7 @@ cmake-build-*/
 .vs/
 .vscode/
 build/
+build-*/
 **.cmake
 
 **.sln
