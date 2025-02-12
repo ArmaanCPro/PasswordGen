@@ -24,7 +24,7 @@ public:
 void PasswordAdheresToPolicy(const std::string& password, const PasswordPolicy& policy)
 {
     const bool matchesLength = password.length() == policy.passwordLength;
-    const bool containsExcludedChars = std::ranges::any_of(password, [&policy](const char& c) { return policy.excludedCharacters.find(c) != std::string::npos; });
+    const bool containsExcludedChars = std::ranges::any_of(password, [&policy](const char& c) { return policy.excludedCharacters.find(c) == std::string::npos; });
     //const bool hasLC = std::ranges::any_of(password, [](const char& c) { return Generator::s_LowerCaseChars.find(c) != std::string::npos; });
     //const bool hasUC = std::ranges::any_of(password, [](const char& c) { return Generator::s_UpperCaseChars.find(c) != std::string::npos; });
     //const bool hasNum = std::ranges::any_of(password, [](const char& c) { return Generator::s_NumbersChars.find(c) != std::string::npos; });
@@ -83,7 +83,7 @@ TEST_F(PasswordGenerationTests1, GenerateMultiplePasswordsIntermediateGeneratesT
 }
 
 // this test is expected to fail for now.
-TEST_F(PasswordGenerationTests1, GenerateAdvancedPasswordGeneratesAdheresToPolicy)
+TEST_F(PasswordGenerationTests1, AdvancedPasswordGeneratesAdheresToPolicy)
 {
     // given:
     const PasswordPolicy& policy = PasswordPolicy{10, true, true, true, true, "cAde"};
