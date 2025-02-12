@@ -27,7 +27,7 @@ std::string Generator::PasswordGenerator::GenerateSimplePassword(bool intelligib
     {
         std::uniform_int_distribution<int> dist(33, 126); // ASCII full range
 
-        for ( int i = 0; i < policy.passwordLength; i++)
+        for (size_t i = 0; i < policy.passwordLength; i++)
         {
             char c = (char)dist(rng);
             while (policy.excludedCharacters.find(c) != std::string::npos)
