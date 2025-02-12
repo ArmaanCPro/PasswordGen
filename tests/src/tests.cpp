@@ -189,7 +189,7 @@ TEST_F(PasswordGenerationTests1, HashPasswordsSafeAsyncCorrectlyHashes)
 
     // then:
     const auto encrypted = encryptedFut.get();
-    for (int i = 0; i < passwords.size(); i++)
+    for (size_t i = 0; i < passwords.size(); i++)
     {
         EXPECT_TRUE(passwordGenerator.VerifyPasswordSafe(passwords[i], encrypted[i])) << "Password hash verification failed";
     }

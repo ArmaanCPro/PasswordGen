@@ -207,7 +207,7 @@ std::future<std::vector<std::string>> Generator::PasswordGenerator::HashPassword
     return std::async(std::launch::async, &Generator::PasswordGenerator::HashPasswordsSafe, this, std::move(passwords));
 }
 
-bool Generator::PasswordGenerator::VerifyPassword(const std::string& password, const std::string& hash) const
+bool Generator::PasswordGenerator::VerifyPassword(const std::string& password, const std::string& hash) const // NOLINT(*-convert-member-functions-to-static)
 {
     return crypto_pwhash_str_verify(hash.c_str(), password.c_str(), password.length()) == 0;
 }

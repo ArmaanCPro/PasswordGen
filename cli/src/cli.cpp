@@ -18,14 +18,19 @@ int main()
 
     while (isRunning)
     {
-        std::cout << "1. Set length\n2. Set use lowercase\n3. Set use uppercase\n4. Set use numbers"
-                     "\n5. Set use symbols\n6. Generate password\n7. Hash password\n8. Exit\n\nEnter your choice: " << std::flush;
+        pwdGen.SetPolicy(policy);
+        std::cout << "0. Exit 1. Set length\n2. Set use lowercase\n3. Set use uppercase\n4. Set use numbers"
+                     "\n5. Set use symbols\n6. Generate password\n7. Hash password\n\n\nEnter your choice: " << std::flush;
 
         int choice = 0;
         std::cin >> choice;
 
         switch (choice)
         {
+            case 0:
+                isRunning = false;
+                break;
+
             case 1:
                 std::cout << "Enter length: " << std::endl;
                 std::cin >> policy.passwordLength;
@@ -57,9 +62,6 @@ int main()
                     std::cin >> password;
                 }
                 std::cout << pwdGen.HashPasswordSafe(std::move(password)) << std::endl;
-                break;
-            case 8:
-                isRunning = false;
                 break;
 
             default:

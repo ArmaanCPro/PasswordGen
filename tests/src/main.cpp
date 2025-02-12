@@ -1,7 +1,5 @@
 #include <Generator.h>
 
-#include <iostream>
-
 #include <cstdio>
 
 #include <gtest/gtest.h>
