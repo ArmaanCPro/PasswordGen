@@ -24,13 +24,12 @@ set(CMAKE_CXX_STANDARD 20)
 enable_testing()
 include(CTest)
 
-
 add_subdirectory(generator)
 add_subdirectory(tests)
 
 option(BUILD_TESTS_ONLY "Configure only the tests directory" OFF)
 
-# Conditionally add projects
+# Conditionally add projects. Used for github build action, as we only need to build/run tests there
 if(NOT BUILD_TESTS_ONLY)
     add_subdirectory(gui)
     add_subdirectory(cli)

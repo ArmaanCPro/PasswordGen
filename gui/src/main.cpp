@@ -11,7 +11,8 @@ enum
     ID_CB_NUMBERS,
     ID_CB_SYMBOLS,
     ID_BTN_GENERATE,
-    ID_BTN_COPY
+    ID_BTN_COPY,
+    ID_BTN_HASH
 };
 
 class MyFrame : public wxFrame
@@ -44,6 +45,9 @@ public:
             SetIcon(icon);
         }
 
+        // mess with fonts here
+        wxWindow::SetFont(wxFont(12, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
         // Define dark mode colors.
         wxColor darkBg(30, 30, 30);           // Dark background (almost black)
         wxColor darkControlBg(50, 50, 50);    // A slightly lighter tone for input controls
@@ -64,6 +68,19 @@ public:
 
         // Create a vertical box sizer for overall layout.
         wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+        // horizontal sizer holding the slider and label
+        wxBoxSizer* sliderSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        passwordLenText = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, 25));
+        passwordLenText->SetForegroundColour(lightText);
+        passwordLenText->SetBackgroundColour(darkControlBg);
+        sliderSizer->Add(passwordLenText, 0, wxALL, 5);
+        passwordLenSlider = new wxSlider(panel, wxID_ANY, 10, 10, 1000, wxDefaultPosition, wxSize(350, 15), wxSL_HORIZONTAL);
+        passwordLenSlider->SetBackgroundColour(darkControlBg);
+        sliderSizer->Add(passwordLenSlider, 0, wxALL, 5);
+
+        mainSizer->Add(sliderSizer, 0, wxALIGN_CENTER);
 
         // Create a horizontal sizer to hold the label and text field side by side.
         wxBoxSizer* hSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -133,14 +150,47 @@ public:
 
         mainSizer->Add(generateSizer, 0, wxALIGN_CENTER);
 
+        // --- Row for cryptography and database ---
+        wxBoxSizer* extraSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        // Hash password button
+        wxButton* hashPasswordButton = new wxButton(panel, ID_BTN_HASH, "Hash Password");
+        hashPasswordButton->SetBackgroundColour(darkControlBg);
+        hashPasswordButton->SetForegroundColour(lightText);
+        extraSizer->Add(hashPasswordButton, 0, wxALL, 5);
+
+        // Read-only text field for the hash. passwordText is a member
+        hashText = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(600, 25),
+            wxTE_READONLY);
+        hashText->SetBackgroundColour(darkControlBg);
+        hashText->SetForegroundColour(lightText);
+        extraSizer->Add(hashText, 0, wxALL, 5);
+
+
+        mainSizer->Add(extraSizer, 0, wxALIGN_CENTER);
 
 
         // Set the main sizer for the panel.
         panel->SetSizer(mainSizer);
 
 
+        // bind slider
+        passwordLenSlider->Bind(wxEVT_SCROLL_THUMBTRACK, [&](wxScrollEvent& event)
+        {
+            policy.passwordLength = passwordLenSlider->GetValue();
+            passwordGenerator.SetPolicy(policy);
+            passwordLenText->ChangeValue(std::to_string(policy.passwordLength));
+        });
+
+        passwordLenText->Bind(wxEVT_TEXT, [&](wxCommandEvent& event)
+        {
+            passwordLenSlider->SetValue(passwordLenSlider->GetValue());
+            policy.passwordLength = passwordLenSlider->GetValue();
+            passwordGenerator.SetPolicy(policy);
+        });
+
         // Bind text control event if needed.
-        Bind(wxEVT_TEXT, [&](wxCommandEvent& event)
+        excludedCharsTextCtrl->Bind(wxEVT_TEXT, [&](wxCommandEvent& event)
         {
             policy.excludedCharacters = event.GetString();
             passwordGenerator.SetPolicy(policy);
@@ -209,6 +259,35 @@ public:
             wxTheClipboard->Close();
         });
 
+        // Hash password button event.
+        hashPasswordButton->Bind(wxEVT_BUTTON, [&](wxCommandEvent& event)
+        {
+            if (passwordText->GetValue().empty())
+            {
+                std::cerr << "Password text is empty!" << std::endl;
+                wxLogError("Password text is empty!");
+                return;
+            }
+            try
+            {
+                // keep memory safety. Store plain-text password for as little time as possible
+                std::vector<std::string> password = { (std::string)passwordText->GetValue() };
+                auto hash = passwordGenerator.HashPasswordsSafeAsync(std::move(password));
+                hash.wait();
+                passwordText->ChangeValue(wxEmptyString);
+                hashText->ChangeValue(hash.get().front());
+            }
+            catch (const std::exception& ex)
+            {
+                wxLogError("Exception during password hashing: %s", ex.what());
+                std::cerr << "Exception during password hashing: " << ex.what() << std::endl;
+            }
+            catch (...)
+            {
+                wxLogError("Unknown exception during password hashing.");
+                std::cerr << "Unknown exception during password hashing." << std::endl;
+            }
+        });
     }
 
 private:
@@ -216,7 +295,13 @@ private:
     Generator::PasswordGenerator passwordGenerator;
 
     // If this wasn't a member, it would result in a segfault for who knows what reason when you change it.
-    wxTextCtrl* passwordText;
+    wxTextCtrl* passwordText = nullptr;
+    wxTextCtrl* hashText = nullptr;
+
+    wxSlider* passwordLenSlider;
+    // label to display the current slider value. editable
+    wxTextCtrl* passwordLenText;
+
 
 private:
     static bool CopyToClipboard(const wxString& text) {
